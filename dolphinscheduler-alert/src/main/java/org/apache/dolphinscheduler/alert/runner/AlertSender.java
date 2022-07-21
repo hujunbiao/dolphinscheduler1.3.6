@@ -62,7 +62,9 @@ public class AlertSender {
             // receiving group list
             List<String> receviersList = new ArrayList<>();
             for (User user : users) {
-                receviersList.add(user.getEmail());
+                //receviersList.add(user.getEmail());
+                // 二次开发新增类  告警发送短信
+                receviersList.add(user.getPhone());
             }
 
             AlertData alertData = new AlertData();
@@ -80,8 +82,11 @@ public class AlertSender {
 
             alertInfo.addProp("receivers", receviersList);
 
-            AlertPlugin emailPlugin = pluginManager.findOne(Constants.PLUGIN_DEFAULT_EMAIL);
-            retMaps = emailPlugin.process(alertInfo);
+            //AlertPlugin emailPlugin = pluginManager.findOne(Constants.PLUGIN_DEFAULT_EMAIL);
+            //retMaps = emailPlugin.process(alertInfo);
+
+            AlertPlugin smsPlugin = pluginManager.findOne(Constants.PLUGIN_DEFAULT_SMS);
+            retMaps = smsPlugin.process(alertInfo);
 
             if (retMaps == null) {
                 alertDao.updateAlert(AlertStatus.EXECUTION_FAILURE, "alert send error", alert.getId());

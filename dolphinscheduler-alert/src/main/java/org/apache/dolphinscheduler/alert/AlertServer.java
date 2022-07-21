@@ -17,6 +17,7 @@
 package org.apache.dolphinscheduler.alert;
 
 import org.apache.dolphinscheduler.alert.plugin.EmailAlertPlugin;
+import org.apache.dolphinscheduler.alert.plugin.SmsAlertPlugin;
 import org.apache.dolphinscheduler.alert.runner.AlertSender;
 import org.apache.dolphinscheduler.alert.utils.Constants;
 import org.apache.dolphinscheduler.alert.utils.PropertyUtils;
@@ -59,6 +60,7 @@ public class AlertServer {
                 new FilePluginManager(PropertyUtils.getString(Constants.PLUGIN_DIR), whitePrefixes, excludePrefixes);
         // add default alert plugins
         alertPluginManager.addPlugin(new EmailAlertPlugin());
+        alertPluginManager.addPlugin(new SmsAlertPlugin());
     }
 
     public synchronized static AlertServer getInstance() {
