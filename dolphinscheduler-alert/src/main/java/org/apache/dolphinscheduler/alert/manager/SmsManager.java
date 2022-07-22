@@ -1,5 +1,8 @@
 package org.apache.dolphinscheduler.alert.manager;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.mail.EmailException;
 import org.apache.dolphinscheduler.alert.utils.Constants;
 import org.apache.dolphinscheduler.alert.utils.DesUtils;
@@ -43,15 +46,17 @@ public class SmsManager {
         }
         receviersList.removeIf(StringUtils::isEmpty);
 
-        try {
-            if (CollectionUtils.isNotEmpty(receviersList) && StringUtils.isNotBlank(content)){
-                for (String receiver : receviersList) {
+        logger.info("receviersList:size:"+receviersList.size());
+        if (CollectionUtils.isNotEmpty(receviersList) && StringUtils.isNotBlank(content)){
+            for (String receiver : receviersList) {
+                try {
+                    logger.info("receiver:"+receiver);
                     // sender sms
-                    return getStringObjectMap(receiver,title, content, showType, retMap);
+                    sendOne(receiver,title, content, showType, retMap);
+                }catch (Exception e) {
+                    handleException(receviersList, retMap, e);
                 }
             }
-        }catch (Exception e) {
-            handleException(receviersList, retMap, e);
         }
         return retMap;
     }
@@ -67,10 +72,11 @@ public class SmsManager {
      * @return the result map
      * @throws EmailException
      */
-    private static Map<String, Object> getStringObjectMap(String phone, String title, String content, String showType, Map<String, Object> retMap) throws Exception {
+    private static Map<String, Object> sendOne(String phone, String title, String content, String showType, Map<String, Object> retMap) throws Exception {
+        logger.info(title+"   "+phone+"   进入发短信方法");
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            String txt = "2^" + phone + "^" + getTextTypeMessage(content);
+            String txt = "2^" + phone + "^" + getSmsByTitle(content,title);
             DesUtils des = new DesUtils();//自定义密钥
             logger.info("加密前的字符：" + txt);
             String token = des.encrypt(txt);
@@ -130,20 +136,40 @@ public class SmsManager {
      * @param content message content
      * @return alert message
      */
-    private static String getTextTypeMessage(String content){
+    private static String getSmsByTitle(String content,String title){
+        // scheduler success
+        // scheduler failed
+
+//        String sms = null;
+//        if (StringUtils.isNotEmpty(content) && StringUtils.isNotEmpty(title)){
+//            //手动或自动调度 成功
+//            if (title.endsWith(" success")){
+//                JSONArray jsonArray = JSON.parseArray(content);
+//                if (jsonArray.size()>0){
+//                    JSONObject jsonObject = jsonArray.getJSONObject(0);
+//                    if (jsonObject.containsKey("name")){
+//                        sms = jsonObject.getString("name")+" SUCCESS";
+//                    }
+//                }
+//            }
+//        }
+//        if (StringUtils.isNotEmpty(content)) {
+//            List<String> list;
+//            try {
+//                list = JSONUtils.toList(content, String.class);
+//            } catch (Exception e) {
+//                logger.error("json format exception", e);
+//                return null;
+//            }
+//            StringBuilder contents = new StringBuilder(100);
+//            for (String str : list){
+//                contents.append(str).append(";");
+//            }
+//            return contents.toString();
+//        }
         if (StringUtils.isNotEmpty(content)) {
-            List<String> list;
-            try {
-                list = JSONUtils.toList(content, String.class);
-            } catch (Exception e) {
-                logger.error("json format exception", e);
-                return null;
-            }
-            StringBuilder contents = new StringBuilder(100);
-            for (String str : list){
-                contents.append(str).append(";");
-            }
-            return contents.toString();
+            String sms = content.replaceAll("\\[","").replaceAll("]","").replaceAll("\\{","").replaceAll("}","").replaceAll("\"","").replaceAll("'","");
+            return sms;
         }
         return null;
     }

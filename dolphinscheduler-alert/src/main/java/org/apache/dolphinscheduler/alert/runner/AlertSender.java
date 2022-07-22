@@ -58,6 +58,7 @@ public class AlertSender {
         Map<String, Object> retMaps = null;
         for (Alert alert : alertList) {
             users = alertDao.listUserByAlertgroupId(alert.getAlertGroupId());
+            logger.info("接受短信的人数："+users.size());
 
             // receiving group list
             List<String> receviersList = new ArrayList<>();
@@ -65,6 +66,7 @@ public class AlertSender {
                 //receviersList.add(user.getEmail());
                 // 二次开发新增类  告警发送短信
                 receviersList.add(user.getPhone());
+                logger.info("接受短信的手机号码："+user.getPhone());
             }
 
             AlertData alertData = new AlertData();
