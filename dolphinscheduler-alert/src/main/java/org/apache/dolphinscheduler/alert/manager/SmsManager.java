@@ -1,12 +1,8 @@
 package org.apache.dolphinscheduler.alert.manager;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.mail.EmailException;
 import org.apache.dolphinscheduler.alert.utils.Constants;
 import org.apache.dolphinscheduler.alert.utils.DesUtils;
-import org.apache.dolphinscheduler.alert.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.CollectionUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
 import org.apache.http.HttpEntity;
@@ -53,6 +49,7 @@ public class SmsManager {
                     logger.info("receiver:"+receiver);
                     // sender sms
                     sendOne(receiver,title, content, showType, retMap);
+                    retMap.put(Constants.STATUS, true);
                 }catch (Exception e) {
                     handleException(receviersList, retMap, e);
                 }
@@ -99,13 +96,15 @@ public class SmsManager {
                     logger.info("Response content: " + EntityUtils.toString(entity));
                 }
                 logger.info("------------------------------------");
-                //retMap.put(Constants.STATUS, true);
+//                retMap.put(Constants.STATUS, true);
             } catch (Exception e) {
+//                retMap.put(Constants.STATUS, false);
                 throw e;
             } finally {
                 response.close();
             }
         } catch (Exception e) {
+//            retMap.put(Constants.STATUS, false);
             throw e;
         } finally {
             // 关闭连接,释放资源
