@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class SmsManager {
     private static final Logger logger = LoggerFactory.getLogger(SmsManager.class);
-    private static final String BASE_URL = "http://css.eda.net/inner/apis/test/SmsSend/sendSms?token=";
+    private static final String BASE_URL = "http://css.eda.net/inner/apis/SmsSend/sendSms?token=";
 
     /**
      * SMS send
