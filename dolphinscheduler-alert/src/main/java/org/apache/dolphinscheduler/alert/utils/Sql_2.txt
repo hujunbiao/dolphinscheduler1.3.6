@@ -1,0 +1,221 @@
+select industry_tag_name as `name` , CONCAT(type,'_总计') as type ,total as `value`  from  (SELECT
+'行业' as order_by_id,
+tt.industry_tag_name,
+tt.type,
+count(distinct  case WHEN
+update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  total,
+
+count(distinct case WHEN
+update_time >= CONCAT(date_format(date_sub( CONCAT ('${report_day}' ,"-01")  ,interval 1 month),'%Y-%m'),'-26 00:00:00')
+and update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  inc_total,
+
+SUM(case when scan_sum != 0 then 1 else 0 end) scan_sum ,
+sum(scan_sum) scan_person,
+SUM(case when download_sum != 0 then 1 else 0 end) download_sum
+from
+(
+SELECT
+	t.type,
+	t.`id`,
+	substring_index(substring_index(t.industry_tag_name,',',b.help_topic_id+1),',',-1
+) AS industry_tag_name ,
+t.scan_sum,
+t.download_sum,
+t.update_time
+FROM
+	(
+SELECT '产品' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_product` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '案例' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_case` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '方案' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_scheme` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0  and a.`status`='checked'
+
+ ) t
+	JOIN mysql.help_topic b ON b.help_topic_id < (
+	length( t.industry_tag_name ) - length( REPLACE ( t.industry_tag_name, ',', '' ) ) + 1
+)
+
+) as tt
+
+GROUP BY tt.industry_tag_name,tt.type
+HAVING tt.industry_tag_name != '综合服务业') bb
+UNION ALL
+select industry_tag_name as `name` , CONCAT(type,'_本月新增') as type ,inc_total as `value`  from   (SELECT
+'行业' as order_by_id,
+tt.industry_tag_name,
+tt.type,
+count(distinct  case WHEN
+update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  total,
+
+count(distinct case WHEN
+update_time >= CONCAT(date_format(date_sub( CONCAT ('${report_day}' ,"-01")  ,interval 1 month),'%Y-%m'),'-26 00:00:00')
+and update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  inc_total,
+
+SUM(case when scan_sum != 0 then 1 else 0 end) scan_sum ,
+sum(scan_sum) scan_person,
+SUM(case when download_sum != 0 then 1 else 0 end) download_sum
+from
+(
+SELECT
+	t.type,
+	t.`id`,
+	substring_index(substring_index(t.industry_tag_name,',',b.help_topic_id+1),',',-1
+) AS industry_tag_name ,
+t.scan_sum,
+t.download_sum,
+t.update_time
+FROM
+	(
+SELECT '产品' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_product` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '案例' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_case` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '方案' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_scheme` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0  and a.`status`='checked'
+
+ ) t
+	JOIN mysql.help_topic b ON b.help_topic_id < (
+	length( t.industry_tag_name ) - length( REPLACE ( t.industry_tag_name, ',', '' ) ) + 1
+)
+
+) as tt
+
+GROUP BY tt.industry_tag_name,tt.type
+HAVING tt.industry_tag_name != '综合服务业') bb
+UNION ALL
+select industry_tag_name as `name` , CONCAT(type,'_下载量(份)') as type ,download_sum as `value`  from   (SELECT
+'行业' as order_by_id,
+tt.industry_tag_name,
+tt.type,
+count(distinct  case WHEN
+update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  total,
+
+count(distinct case WHEN
+update_time >= CONCAT(date_format(date_sub( CONCAT ('${report_day}' ,"-01")  ,interval 1 month),'%Y-%m'),'-26 00:00:00')
+and update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  inc_total,
+
+SUM(case when scan_sum != 0 then 1 else 0 end) scan_sum ,
+sum(scan_sum) scan_person,
+SUM(case when download_sum != 0 then 1 else 0 end) download_sum
+from
+(
+SELECT
+	t.type,
+	t.`id`,
+	substring_index(substring_index(t.industry_tag_name,',',b.help_topic_id+1),',',-1
+) AS industry_tag_name ,
+t.scan_sum,
+t.download_sum,
+t.update_time
+FROM
+	(
+SELECT '产品' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_product` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '案例' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_case` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '方案' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_scheme` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0  and a.`status`='checked'
+
+ ) t
+	JOIN mysql.help_topic b ON b.help_topic_id < (
+	length( t.industry_tag_name ) - length( REPLACE ( t.industry_tag_name, ',', '' ) ) + 1
+)
+
+) as tt
+
+GROUP BY tt.industry_tag_name,tt.type
+HAVING tt.industry_tag_name != '综合服务业') bb
+UNION ALL
+select industry_tag_name as `name` , CONCAT(type,'_预览量(人次)') as type ,scan_sum as `value`  from   (SELECT
+'行业' as order_by_id,
+tt.industry_tag_name,
+tt.type,
+count(distinct  case WHEN
+update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  total,
+
+count(distinct case WHEN
+update_time >= CONCAT(date_format(date_sub( CONCAT ('${report_day}' ,"-01")  ,interval 1 month),'%Y-%m'),'-26 00:00:00')
+and update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  inc_total,
+
+SUM(case when scan_sum != 0 then 1 else 0 end) scan_sum ,
+sum(scan_sum) scan_person,
+SUM(case when download_sum != 0 then 1 else 0 end) download_sum
+from
+(
+SELECT
+	t.type,
+	t.`id`,
+	substring_index(substring_index(t.industry_tag_name,',',b.help_topic_id+1),',',-1
+) AS industry_tag_name ,
+t.scan_sum,
+t.download_sum,
+t.update_time
+FROM
+	(
+SELECT '产品' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_product` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '案例' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_case` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '方案' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_scheme` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0  and a.`status`='checked'
+
+ ) t
+	JOIN mysql.help_topic b ON b.help_topic_id < (
+	length( t.industry_tag_name ) - length( REPLACE ( t.industry_tag_name, ',', '' ) ) + 1
+)
+
+) as tt
+
+GROUP BY tt.industry_tag_name,tt.type
+HAVING tt.industry_tag_name != '综合服务业') bb
+UNION ALL
+select industry_tag_name as `name` , CONCAT(type,'_预览物料数(份)') as type ,scan_person as `value`  from  (SELECT
+'行业' as order_by_id,
+tt.industry_tag_name,
+tt.type,
+count(distinct  case WHEN
+update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  total,
+
+count(distinct case WHEN
+update_time >= CONCAT(date_format(date_sub( CONCAT ('${report_day}' ,"-01")  ,interval 1 month),'%Y-%m'),'-26 00:00:00')
+and update_time< CONCAT(date_format(  CONCAT ('${report_day}' ,"-01")  ,'%Y-%m') ,'-26 00:00:00')
+then CONCAT(industry_tag_name,type,id) end )  inc_total,
+
+SUM(case when scan_sum != 0 then 1 else 0 end) scan_sum ,
+sum(scan_sum) scan_person,
+SUM(case when download_sum != 0 then 1 else 0 end) download_sum
+from
+(
+SELECT
+	t.type,
+	t.`id`,
+	substring_index(substring_index(t.industry_tag_name,',',b.help_topic_id+1),',',-1
+) AS industry_tag_name ,
+t.scan_sum,
+t.download_sum,
+t.update_time
+FROM
+	(
+SELECT '产品' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_product` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '案例' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_case` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0 and a.`status`='checked'
+UNION all
+SELECT '方案' as type,a.`id`,a.industry_tag_name,a.scan_sum,a.download_sum,a.update_time FROM `wk_scheme` a  left join t_organization_analysis b on a.create_company_code = b.ctou left join belong_company_types c  on a.create_company_code = c.company_code where b.belong_unit LIKE '%集团%' and c.belong_type = '政企' and  a.del_flag = 0  and a.`status`='checked'
+
+ ) t
+	JOIN mysql.help_topic b ON b.help_topic_id < (
+	length( t.industry_tag_name ) - length( REPLACE ( t.industry_tag_name, ',', '' ) ) + 1
+)
+
+) as tt
+
+GROUP BY tt.industry_tag_name,tt.type
+HAVING tt.industry_tag_name != '综合服务业') bb
+
+order by name,type
