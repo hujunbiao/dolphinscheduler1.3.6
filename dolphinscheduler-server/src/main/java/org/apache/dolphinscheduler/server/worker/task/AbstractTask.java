@@ -44,6 +44,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import org.slf4j.Logger;
 
@@ -126,7 +127,13 @@ public abstract class AbstractTask {
         if (logs.contains(FINALIZE_SESSION_MARKER.toString())) {
             logger.info(FINALIZE_SESSION_MARKER, FINALIZE_SESSION_MARKER.toString());
         } else {
-            logger.info(" -> {}", String.join("\n\t", logs));
+            //logger.info(" -> {}", String.join("\n\t", logs));
+			// note: if the logs is a SynchronizedList and will be modified concurrently,
+            // we should must use foreach to iterate the element, otherwise will throw a ConcurrentModifiedException(#issue 5528)
+			// https://github.com/apache/dolphinscheduler/commit/9d0c816cee102edbba2ac080f483c8a73a0b7b30
+            StringJoiner joiner = new StringJoiner("\n\t");
+            logs.forEach(joiner::add);
+            logger.info(" -> {}", joiner.toString());
         }
     }
 
