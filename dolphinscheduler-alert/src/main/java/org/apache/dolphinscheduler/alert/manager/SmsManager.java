@@ -73,7 +73,7 @@ public class SmsManager {
         logger.info(title+"   "+phone+"   进入发短信方法");
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            String txt = "2^" + phone + "^" + getSmsByTitle(content,title);
+            String txt = "2^" + phone + "^" + getSmsByTitle("新集群>>"+content,title);
             DesUtils des = new DesUtils();//自定义密钥
             logger.info("加密前的字符：" + txt);
             String token = des.encrypt(txt);
